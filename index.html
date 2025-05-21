@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="heading">
+    <h1>Feedback System</h1>
+  </div>
+
+  <div class="rating">
+    <h4>Overall Ratings</h4>
+    <p id="star1">* 0</p>
+    <p id="star2">** 0</p>
+    <p id="star3">*** 0</p>
+    <p id="star4">**** 0</p>
+    <p id="star5">***** 0</p>
+  </div>
+
+  <div class="feedbackForm">
+    <h4>Feedback Form</h4>
+    <label for="name">Enter Your Name:</label>
+    <input type="text" id="nameInput" />
+    <label>Choose Rating:</label>
+    <div class="dropdown">
+      <button id="dropdownButton" class="dropdown-button">Select</button>
+      <div class="dropdown-content">
+        <a href="#" class="dropdown-option">1</a>
+        <a href="#" class="dropdown-option">2</a>
+        <a href="#" class="dropdown-option">3</a>
+        <a href="#" class="dropdown-option">4</a>
+        <a href="#" class="dropdown-option">5</a>
+      </div>
+    </div>
+    <button id="submitBtn">Submit</button>
+  </div>
+
+  <div id="allFeedbacks">
+    <h4>All Feedbacks</h4>
+    <div id="feedbackList"></div>
+  </div>
+
+  <script>
+    const dropdownButton = document.getElementById("dropdownButton");
+    const options = document.querySelectorAll(".dropdown-option");
+    const nameInput = document.getElementById("nameInput");
+    const feedbackList = document.getElementById("feedbackList");
+    const submitBtn = document.getElementById("submitBtn");
+
+    const ratingCounts = [0, 0, 0, 0, 0];
+    let feedbacks = [];
+    let editingIndex = -1;
+    let selectedRating = null;
+
+    options.forEach((option) => {
+      option.addEventListener("click", function (e) {
+        e.preventDefault();
+        selectedRating = parseInt(this.textContent);
+        dropdownButton.textContent = selectedRating;
+      });
+    });
+
+    function updateRatingDisplay() {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`star${i}`).textContent = "*".repeat(i) + " " + ratingCounts[i - 1];
+      }
+    }
+
+    function renderFeedbacks() {
+      feedbackList.innerHTML = "";
+      feedbacks.forEach((entry, index) => {
+        const div = document.createElement("div");
+        div.className = "feedback-entry";
+        div.innerHTML = `
+          ${entry.name} ${entry.rating}
+          <button onclick="deleteFeedback(${index})">DELETE</button>
+          <button onclick="editFeedback(${index})">EDIT</button>
+        `;
+        feedbackList.appendChild(div);
+      });
+    }
+
+    window.deleteFeedback = function (index) {
+      const oldRating = feedbacks[index].rating;
+      ratingCounts[oldRating - 1]--;
+      feedbacks.splice(index, 1);
+      updateRatingDisplay();
+      renderFeedbacks();
+    };
+
+    window.editFeedback = function (index) {
+      const entry = feedbacks[index];
+      nameInput.value = entry.name;
+      selectedRating = entry.rating;
+      dropdownButton.textContent = selectedRating;
+      submitBtn.textContent = "Edit";
+      editingIndex = index;
+    };
+
+    submitBtn.addEventListener("click", function () {
+      const name = nameInput.value.trim();
+      if (!name || selectedRating === null) {
+        alert("Please enter name and rating.");
+        return;
+      }
+
+      if (editingIndex !== -1) {
+        // Editing existing feedback
+        const oldRating = feedbacks[editingIndex].rating;
+        ratingCounts[oldRating - 1]--;
+        feedbacks[editingIndex] = { name, rating: selectedRating };
+        ratingCounts[selectedRating - 1]++;
+        editingIndex = -1;
+        submitBtn.textContent = "Submit";
+      } else {
+        // Adding new feedback
+        feedbacks.push({ name, rating: selectedRating });
+        ratingCounts[selectedRating - 1]++;
+      }
+
+      nameInput.value = "";
+      dropdownButton.textContent = "Select";
+      selectedRating = null;
+      updateRatingDisplay();
+      renderFeedbacks();
+    });
+
+  </script>
+
+</body>
+</html>
